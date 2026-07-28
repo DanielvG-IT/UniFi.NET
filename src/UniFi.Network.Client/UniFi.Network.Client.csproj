@@ -10,7 +10,7 @@
     <Version>10.4.57</Version>
     <Description>A .NET client for the UniFi Network API, supporting both local console and Site Manager cloud connector access.</Description>
     <Authors>Daniël van Ginneken</Authors>
-    <RepositoryUrl>https://github.com/danielvginneken/UniFi.NET</RepositoryUrl>
+    <RepositoryUrl>https://github.com/DanielvG-IT/UniFi.NET</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
