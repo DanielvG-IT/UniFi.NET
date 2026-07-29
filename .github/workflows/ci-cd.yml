@@ -157,8 +157,8 @@ jobs:
           TIMESTAMPER: ${{ vars.SIGNING_TIMESTAMPER_URL || 'http://timestamp.digicert.com' }}
         run: |
           if [ -z "$CERT_BASE64" ]; then
-            echo "::error::SIGNING_CERTIFICATE_BASE64 is not set. NuGet.org requires signed packages once a certificate is registered."
-            exit 1
+            echo "::warning::No signing certificate configured (SIGNING_CERTIFICATE_BASE64). Publishing UNSIGNED packages. Register a certificate on NuGet.org and add the secret to enable signing."
+            exit 0
           fi
           CERT_PATH="$RUNNER_TEMP/signing-cert.pfx"
           echo "$CERT_BASE64" | base64 -d > "$CERT_PATH"
