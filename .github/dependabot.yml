@@ -7,6 +7,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: ci
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   # No third-party NuGet packages today, but this keeps any future dependency updated.
   - package-ecosystem: nuget
@@ -15,3 +19,7 @@ updates:
       interval: weekly
     commit-message:
       prefix: deps
+    groups:
+      nuget-dependencies:
+        patterns:
+          - "*"
