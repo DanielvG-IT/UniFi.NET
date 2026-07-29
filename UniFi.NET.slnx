@@ -3,6 +3,7 @@
     <Project Path="samples/UniFi.Network.Client.Sample/UniFi.Network.Client.Sample.csproj" />
     <Project Path="samples/UniFi.SiteManager.Client.Sample/UniFi.SiteManager.Client.Sample.csproj" />
     <Project Path="samples/UniFi.Protect.Client.Sample/UniFi.Protect.Client.Sample.csproj" />
+    <Project Path="samples/UniFi.Mobility.Client.Sample/UniFi.Mobility.Client.Sample.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/UniFi.Network.Client/UniFi.Network.Client.csproj" />
