@@ -374,8 +374,12 @@ dotnet run --project samples/UniFi.Mobility.Client.Sample
 ## Releasing (package security)
 
 Publishing to NuGet.org uses **Trusted Publishing** (OIDC) — there is no long-lived
-`NUGET_API_KEY` secret. Packages are **signed** in CI before they are pushed. Pushing a `v*.*.*`
-tag runs the `publish-nuget` job, which signs every `.nupkg` and then authenticates via OIDC.
+`NUGET_API_KEY` secret. Each package is versioned and released **independently**: its version lives
+in its own `.csproj`, and pushing a per-package tag `<PackageId>-v<version>` (e.g.
+`UniFi.Protect.Client-v7.1.87`) runs the `publish-release` job, which packs, signs, and publishes
+**only that package** via OIDC. `make release` creates one such tag per project from its csproj
+version; `make release PROJECT=src/UniFi.Protect.Client/UniFi.Protect.Client.csproj` releases just
+one. (Pushes to `main` still publish `-canary` prereleases of every package to GitHub Packages.)
 
 One-time setup (repository/organization owner):
 

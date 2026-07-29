@@ -53,7 +53,8 @@ release:
 			echo "❌ Error: Could not find <Version> in $$csproj"; \
 			exit 1; \
 		fi; \
-		tag="v$$version"; \
+		pkg=$$(basename "$$csproj" .csproj); \
+		tag="$$pkg-v$$version"; \
 		if git rev-parse -q --verify "refs/tags/$$tag" >/dev/null 2>&1; then \
 			echo "⚠️  Tag $$tag already exists; skipping."; \
 		elif [ "$(DRY_RUN)" = "1" ]; then \
