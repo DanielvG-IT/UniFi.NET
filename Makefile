@@ -1,8 +1,6 @@
 .PHONY: help build test clean pack save release
 
 SLN = UniFi.NET.slnx
-CSPROJ = src/UniFi.Network.Client/UniFi.Network.Client.csproj
-
 .DEFAULT_GOAL := help
 
 help:
@@ -27,9 +25,6 @@ test:
 clean:
 	dotnet clean $(SLN)
 	rm -rf artifacts/
-
-pack:
-	dotnet pack $(CSPROJ) -c Release -o ./artifacts
 
 save:
 	@if [ -z "$(m)" ]; then \
