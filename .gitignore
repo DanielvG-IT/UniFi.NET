@@ -3,3 +3,10 @@ obj/
 *.user
 .vs/
 .idea/
+
+# Never commit signing material / private keys
+*.pfx
+*.p12
+*.snk
+*.key
+signing-cert.*

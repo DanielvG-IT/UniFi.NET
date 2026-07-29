@@ -131,6 +131,11 @@ jobs:
     needs: pack
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    # Must match the Environment configured on the NuGet.org Trusted Publisher policy.
+    environment: production
+    permissions:
+      contents: read
+      id-token: write   # required to mint the short-lived OIDC token for Trusted Publishing
 
     steps:
       - name: Download all package artifacts
@@ -140,9 +145,43 @@ jobs:
           merge-multiple: true
           path: ${{ github.workspace }}/artifacts
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Sign packages
+        env:
+          CERT_BASE64: ${{ secrets.SIGNING_CERTIFICATE_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+          TIMESTAMPER: ${{ vars.SIGNING_TIMESTAMPER_URL || 'http://timestamp.digicert.com' }}
+        run: |
+          if [ -z "$CERT_BASE64" ]; then
+            echo "::error::SIGNING_CERTIFICATE_BASE64 is not set. NuGet.org requires signed packages once a certificate is registered."
+            exit 1
+          fi
+          CERT_PATH="$RUNNER_TEMP/signing-cert.pfx"
+          echo "$CERT_BASE64" | base64 -d > "$CERT_PATH"
+          dotnet nuget sign "${{ github.workspace }}/artifacts/*.nupkg" \
+            --certificate-path "$CERT_PATH" \
+            --certificate-password "$CERT_PASSWORD" \
+            --timestamper "$TIMESTAMPER"
+
+      # Trusted Publishing: exchanges the workflow's OIDC token for a short-lived NuGet.org
+      # API key. No long-lived NUGET_API_KEY secret is needed.
+      - name: Authenticate to NuGet.org (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: DanielvGinneken
+
       - name: Publish to NuGet.org
         run: >
           dotnet nuget push "${{ github.workspace }}/artifacts/*.nupkg"
-          --api-key ${{ secrets.NUGET_API_KEY }}
+          --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
+
+      - name: Remove signing certificate
+        if: always()
+        run: rm -f "$RUNNER_TEMP/signing-cert.pfx"

@@ -371,6 +371,30 @@ export UNIFI_API_KEY=...
 dotnet run --project samples/UniFi.Mobility.Client.Sample
 ```
 
+## Releasing (package security)
+
+Publishing to NuGet.org uses **Trusted Publishing** (OIDC) — there is no long-lived
+`NUGET_API_KEY` secret. Packages are **signed** in CI before they are pushed. Pushing a `v*.*.*`
+tag runs the `publish-nuget` job, which signs every `.nupkg` and then authenticates via OIDC.
+
+One-time setup (repository/organization owner):
+
+1. **Trusted Publisher policy** on NuGet.org (Account → Trusted Publishing) with:
+   - Package Owner: `DanielvGinneken`
+   - Repository Owner: `DanielvG-IT`, Repository: `UniFi.NET`
+   - Workflow File: `ci-cd.yml`, Environment: `production`
+2. A GitHub Actions **environment** named `production` (the release job references it).
+3. **Signing certificate** — register the public `.cer` under the NuGet.org organization's
+   certificates, and add the signing key to the repo:
+   - Secret `SIGNING_CERTIFICATE_BASE64` — base64 of the code-signing `.pfx`
+     (`base64 -w0 cert.pfx` on Linux / `base64 -i cert.pfx` on macOS).
+   - Secret `SIGNING_CERTIFICATE_PASSWORD` — the `.pfx` password.
+   - Optional variable `SIGNING_TIMESTAMPER_URL` — RFC 3161 timestamp server
+     (defaults to `http://timestamp.digicert.com`).
+
+Private keys (`*.pfx`, `*.p12`, `*.snk`, `*.key`) are git-ignored and must never be committed —
+only ever provide them through repository secrets.
+
 ## Status
 
 Covers all 44 documented endpoints across the Network API's 25 resource categories. Built against
