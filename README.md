@@ -37,7 +37,21 @@ Generate an API key at [unifi.ui.com](https://unifi.ui.com) or on your console.
 ### Local console
 
 Talk directly to a console on your LAN (e.g. a UDM or Cloud Gateway). Local consoles serve a
-self-signed certificate, so TLS validation is skipped by default.
+self-signed certificate, so TLS validation is relaxed by default (`allowUntrustedCertificate: true`).
+
+> **Security:** disabling validation exposes the API key to man-in-the-middle attacks on the local
+> network. For anything beyond local testing, **pin the console's certificate** instead — it works
+> with self-signed certs but still authenticates the peer:
+>
+> ```csharp
+> var options = UniFiClientOptions.ForLocalConsole(
+>     "192.168.1.1", apiKey,
+>     allowUntrustedCertificate: false,
+>     pinnedCertificateSha256: "AB:CD:…");   // SHA-256 thumbprint of the console cert
+> ```
+>
+> The same `pinnedCertificateSha256` parameter is available on `ProtectClientOptions.ForLocalConsole`
+> (and applies to Protect's WebSocket subscriptions too).
 
 ```csharp
 using UniFi.Network.Client;
