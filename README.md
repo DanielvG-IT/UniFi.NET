@@ -33,10 +33,10 @@ versioned independently — each tracks its upstream API version: `UniFi.Network
 `UniFi.Protect.Client` **7.1.87**, `UniFi.SiteManager.Client` **1.0.0**, `UniFi.Mobility.Client`
 **1.0.0**.
 
-There's also an optional DI integration package for the Network client,
-`UniFi.Network.Client.Extensions.DependencyInjection`, for `IHttpClientFactory`-based registration
-(see [Dependency injection](#dependency-injection)). It's in the repo and releases on its next tag —
-not yet on NuGet at the time of writing.
+Each client also has an optional DI integration package,
+`UniFi.<Product>.Client.Extensions.DependencyInjection`, for `IHttpClientFactory`-based registration
+(see [Dependency injection](#dependency-injection)). They're in the repo and release on their next
+tag — not yet on NuGet at the time of writing.
 
 ## Usage
 
@@ -164,10 +164,10 @@ catch (UniFiApiException ex)
 
 ### Dependency injection
 
-The optional `UniFi.Network.Client.Extensions.DependencyInjection` package registers the client as a
-typed `HttpClient` via `IHttpClientFactory` (pooled, long-lived connections), applying the same TLS
-pinning/trust settings. The core `UniFi.Network.Client` stays dependency-free; only this package
-pulls in `Microsoft.Extensions.Http`.
+Each client has an optional `UniFi.<Product>.Client.Extensions.DependencyInjection` package that
+registers it as a typed `HttpClient` via `IHttpClientFactory` (pooled, long-lived connections),
+applying the same TLS pinning/trust settings. The client libraries stay dependency-free; only these
+packages pull in `Microsoft.Extensions.Http`.
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -175,15 +175,19 @@ using UniFi.Network.Client;
 
 builder.Services.AddUniFiNetworkClient(
     UniFiClientOptions.ForLocalConsole("192.168.1.1", apiKey, pinnedCertificateSha256: pin));
-// or resolve options from config/DI:
-builder.Services.AddUniFiNetworkClient(sp => UniFiClientOptions.ForCloudConnector(consoleId, apiKey));
 
-// then inject it anywhere:
+// the others follow the same shape:
+builder.Services.AddUniFiProtectClient(ProtectClientOptions.ForCloudConnector(consoleId, apiKey));
+builder.Services.AddUniFiSiteManagerClient(apiKey);          // cloud-only, API key
+builder.Services.AddUniFiMobilityClient(apiKey);             // cloud-only, `mobility`-scoped key
+
+// then inject the client anywhere:
 public sealed class GuestService(UniFiNetworkClient unifi) { /* ... */ }
 ```
 
-`AddUniFiNetworkClient` returns the `IHttpClientBuilder`, so you can chain resilience/logging
-handlers (e.g. Polly).
+Each `AddUniFi…Client` returns the `IHttpClientBuilder`, so you can chain resilience/logging handlers
+(e.g. Polly). All overloads also accept a `Func<IServiceProvider, …Options>` to resolve options from
+configuration.
 
 ## Site Manager API
 
@@ -367,8 +371,8 @@ per minute per key (`429`, surfaced as `code == "rate_limit"`).
   - `Http/` — HTTP plumbing (`ApiConnection`, `UniFiMobilityException`)
   - `Models/` — workspace, device, and client types plus the `MobilityPage<T>` envelope
   - `Resources/` — Workspaces, Devices
-- `src/UniFi.Network.Client.Extensions.DependencyInjection` — optional DI integration for the
-  Network client (`AddUniFiNetworkClient(...)` over `IHttpClientFactory`)
+- `src/UniFi.<Product>.Client.Extensions.DependencyInjection` (one per client) — optional DI
+  integration (`AddUniFi<Product>Client(...)` over `IHttpClientFactory`)
 - `samples/UniFi.Network.Client.Sample` — console app demonstrating both connection targets
 - `samples/UniFi.SiteManager.Client.Sample` — console app for the Site Manager API
 - `samples/UniFi.Protect.Client.Sample` — console app for the Protect API
@@ -443,7 +447,7 @@ upstream API, plus an optional DI package:
 | `UniFi.Protect.Client` | 7.1.87 | [Protect](https://developer.ui.com/protect/) (local console + cloud connector) |
 | `UniFi.SiteManager.Client` | 1.0.0 | [Site Manager](https://developer.ui.com/site-manager/) (cloud) |
 | `UniFi.Mobility.Client` | 1.0.0 | [Mobility](https://developer.ui.com/mobility/) (cloud) |
-| `UniFi.Network.Client.Extensions.DependencyInjection` | 1.0.0 | DI / `IHttpClientFactory` for the Network client — *not yet published* |
+| `UniFi.<Product>.Client.Extensions.DependencyInjection` (×4) | 1.0.0 | DI / `IHttpClientFactory` registration for each client — *not yet published* |
 
 Generated request/response shapes are built against these API versions and may drift from newer
 firmware — the linked OpenAPI specs are the source of truth. The client libraries have **zero

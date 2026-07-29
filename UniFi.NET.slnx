@@ -11,5 +11,8 @@
     <Project Path="src/UniFi.Protect.Client/UniFi.Protect.Client.csproj" />
     <Project Path="src/UniFi.Mobility.Client/UniFi.Mobility.Client.csproj" />
     <Project Path="src/UniFi.Network.Client.Extensions.DependencyInjection/UniFi.Network.Client.Extensions.DependencyInjection.csproj" />
+    <Project Path="src/UniFi.SiteManager.Client.Extensions.DependencyInjection/UniFi.SiteManager.Client.Extensions.DependencyInjection.csproj" />
+    <Project Path="src/UniFi.Protect.Client.Extensions.DependencyInjection/UniFi.Protect.Client.Extensions.DependencyInjection.csproj" />
+    <Project Path="src/UniFi.Mobility.Client.Extensions.DependencyInjection/UniFi.Mobility.Client.Extensions.DependencyInjection.csproj" />
   </Folder>
 </Solution>
