@@ -4,5 +4,6 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/UniFi.Network.Client/UniFi.Network.Client.csproj" />
+    <Project Path="src/UniFi.SiteManager.Client/UniFi.SiteManager.Client.csproj" />
   </Folder>
 </Solution>
