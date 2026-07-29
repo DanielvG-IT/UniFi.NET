@@ -13,8 +13,22 @@ public sealed class UniFiNetworkClient : IDisposable
     private readonly ApiConnection _connection;
 
     public UniFiNetworkClient(UniFiClientOptions options)
+        : this(new ApiConnection(ThrowIfNull(options)))
     {
-        _connection = new ApiConnection(options);
+    }
+
+    /// <summary>
+    /// Use a caller-supplied <see cref="HttpClient"/> (e.g. registered via IHttpClientFactory).
+    /// The client is not disposed by this instance.
+    /// </summary>
+    public UniFiNetworkClient(UniFiClientOptions options, HttpClient httpClient)
+        : this(new ApiConnection(ThrowIfNull(options), httpClient))
+    {
+    }
+
+    private UniFiNetworkClient(ApiConnection connection)
+    {
+        _connection = connection;
 
         Sites = new SitesResource(_connection);
         Devices = new DevicesResource(_connection);
@@ -56,6 +70,12 @@ public sealed class UniFiNetworkClient : IDisposable
     /// <summary>Basic info about the Network application, including its version.</summary>
     public Task<ApplicationInfo> GetApplicationInfoAsync(CancellationToken cancellationToken = default)
         => _connection.GetAsync<ApplicationInfo>("v1/info", cancellationToken: cancellationToken);
+
+    private static UniFiClientOptions ThrowIfNull(UniFiClientOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return options;
+    }
 
     public void Dispose() => _connection.Dispose();
 }

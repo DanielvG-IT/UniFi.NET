@@ -12,9 +12,23 @@ public sealed class UniFiProtectClient : IDisposable
     private readonly ApiConnection _connection;
 
     public UniFiProtectClient(ProtectClientOptions options)
+        : this(new ApiConnection(ThrowIfNull(options)))
     {
-        ArgumentNullException.ThrowIfNull(options);
-        _connection = new ApiConnection(options);
+    }
+
+    /// <summary>
+    /// Use a caller-supplied <see cref="HttpClient"/> (e.g. registered via IHttpClientFactory).
+    /// The client is not disposed by this instance. TLS pinning/validation is the caller's
+    /// responsibility on an injected client.
+    /// </summary>
+    public UniFiProtectClient(ProtectClientOptions options, HttpClient httpClient)
+        : this(new ApiConnection(ThrowIfNull(options), httpClient))
+    {
+    }
+
+    private UniFiProtectClient(ApiConnection connection)
+    {
+        _connection = connection;
 
         Meta = new MetaResource(_connection);
         Cameras = new CamerasResource(_connection);
@@ -63,6 +77,12 @@ public sealed class UniFiProtectClient : IDisposable
 
     /// <summary>Real-time device and event subscriptions over WebSocket.</summary>
     public SubscriptionsResource Subscriptions { get; }
+
+    private static ProtectClientOptions ThrowIfNull(ProtectClientOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return options;
+    }
 
     public void Dispose() => _connection.Dispose();
 }

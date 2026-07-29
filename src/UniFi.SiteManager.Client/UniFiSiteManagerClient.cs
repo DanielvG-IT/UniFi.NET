@@ -23,6 +23,23 @@ public sealed class UniFiSiteManagerClient : IDisposable
         SdWanConfigs = new SdWanConfigsResource(_connection);
     }
 
+    /// <summary>
+    /// Use a caller-supplied <see cref="HttpClient"/> (e.g. registered via IHttpClientFactory).
+    /// The client is not disposed by this instance.
+    /// </summary>
+    public UniFiSiteManagerClient(SiteManagerClientOptions options, HttpClient httpClient)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(httpClient);
+        _connection = new ApiConnection(options, httpClient);
+
+        Hosts = new HostsResource(_connection);
+        Sites = new SitesResource(_connection);
+        Devices = new DevicesResource(_connection);
+        IspMetrics = new IspMetricsResource(_connection);
+        SdWanConfigs = new SdWanConfigsResource(_connection);
+    }
+
     /// <summary>Convenience overload that builds options from just an API key.</summary>
     public UniFiSiteManagerClient(string apiKey)
         : this(SiteManagerClientOptions.Create(apiKey))
