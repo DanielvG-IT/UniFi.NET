@@ -7,7 +7,7 @@
     <LangVersion>latest</LangVersion>
 
     <PackageId>UniFi.Network.Client</PackageId>
-    <Version>10.4.57-preview.1</Version>
+    <Version>10.4.57</Version>
     <Description>A .NET client for the UniFi Network API, supporting both local console and Site Manager cloud connector access.</Description>
     <Authors>Daniël van Ginneken</Authors>
     <RepositoryUrl>https://github.com/DanielvG-IT/UniFi.NET</RepositoryUrl>
