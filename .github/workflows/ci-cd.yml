@@ -50,6 +50,8 @@ jobs:
             project: src/UniFi.SiteManager.Client/UniFi.SiteManager.Client.csproj
           - name: UniFi.Protect.Client
             project: src/UniFi.Protect.Client/UniFi.Protect.Client.csproj
+          - name: UniFi.Mobility.Client
+            project: src/UniFi.Mobility.Client/UniFi.Mobility.Client.csproj
 
     steps:
       - name: Checkout repository
