@@ -31,9 +31,10 @@ public sealed class SubscriptionsResource
     {
         using var socket = new ClientWebSocket();
         socket.Options.SetRequestHeader("X-API-KEY", _connection.ApiKey);
-        if (_connection.AllowUntrustedCertificate)
+        var certCallback = TlsValidation.CreateWebSocketCallback(_connection.PinnedCertificateSha256, _connection.AllowUntrustedCertificate);
+        if (certCallback is not null)
         {
-            socket.Options.RemoteCertificateValidationCallback = (_, _, _, _) => true;
+            socket.Options.RemoteCertificateValidationCallback = certCallback;
         }
 
         var uri = BuildWebSocketUri(relativePath);

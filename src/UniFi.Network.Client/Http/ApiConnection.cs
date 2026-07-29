@@ -13,40 +13,79 @@ namespace UniFi.Network.Client.Http;
 /// </summary>
 internal sealed class ApiConnection : IDisposable
 {
+    /// <summary>Upper bound on a buffered response body, to bound memory use from a hostile endpoint.</summary>
+    private const int MaxResponseContentBytes = 32 * 1024 * 1024;
+
+    /// <summary>Longest a stored error-response body may be, to avoid unbounded exception payloads.</summary>
+    private const int MaxErrorBodyChars = 4096;
+
+    private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(100);
+
     private readonly HttpClient _httpClient;
+    private readonly bool _ownsHttpClient;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public ApiConnection(UniFiClientOptions options)
-        : this(BuildHttpClient(options))
     {
+        _httpClient = BuildHttpClient(options);
+        _ownsHttpClient = true;
+        _jsonOptions = CreateJsonOptions();
     }
 
-    /// <summary>Test/advanced seam: bring your own configured HttpClient (e.g. with a mocked handler).</summary>
+    /// <summary>
+    /// Use a caller-supplied <see cref="HttpClient"/> (e.g. from IHttpClientFactory). The client is
+    /// not disposed by this instance; only its base address and auth header are set if not present.
+    /// </summary>
+    public ApiConnection(UniFiClientOptions options, HttpClient httpClient)
+    {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ConfigureClient(httpClient, options);
+        _httpClient = httpClient;
+        _ownsHttpClient = false;
+        _jsonOptions = CreateJsonOptions();
+    }
+
+    /// <summary>Test seam: bring your own configured HttpClient (e.g. with a mocked handler).</summary>
     public ApiConnection(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+        _ownsHttpClient = true;
+        _jsonOptions = CreateJsonOptions();
     }
+
+    private static JsonSerializerOptions CreateJsonOptions() => new()
+    {
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
 
     private static HttpClient BuildHttpClient(UniFiClientOptions options)
     {
-        var handler = new HttpClientHandler();
-        if (options.AllowUntrustedCertificate)
+        var handler = new HttpClientHandler { CheckCertificateRevocationList = true };
+        var callback = TlsValidation.CreateHandlerCallback(options.PinnedCertificateSha256, options.AllowUntrustedCertificate);
+        if (callback is not null)
         {
-            handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
+            handler.ServerCertificateCustomValidationCallback = callback;
         }
 
         var httpClient = new HttpClient(handler)
         {
             BaseAddress = options.BaseAddress,
+            Timeout = DefaultTimeout,
+            MaxResponseContentBufferSize = MaxResponseContentBytes,
         };
         httpClient.DefaultRequestHeaders.Add("X-API-KEY", options.ApiKey);
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         return httpClient;
+    }
+
+    private static void ConfigureClient(HttpClient httpClient, UniFiClientOptions options)
+    {
+        httpClient.BaseAddress ??= options.BaseAddress;
+        if (!httpClient.DefaultRequestHeaders.Contains("X-API-KEY"))
+        {
+            httpClient.DefaultRequestHeaders.Add("X-API-KEY", options.ApiKey);
+        }
     }
 
     public Task<T> GetAsync<T>(string relativePath, IReadOnlyDictionary<string, string?>? query = null, CancellationToken cancellationToken = default)
@@ -170,8 +209,17 @@ internal sealed class ApiConnection : IDisposable
             // Body wasn't the documented "Error Message" shape (e.g. an upstream proxy error) — fall back to the raw body.
         }
 
-        throw new UniFiApiException(response.StatusCode, message, body, code, requestId, requestPath);
+        var storedBody = body.Length > MaxErrorBodyChars
+            ? string.Concat(body.AsSpan(0, MaxErrorBodyChars), "…[truncated]")
+            : body;
+        throw new UniFiApiException(response.StatusCode, message, storedBody, code, requestId, requestPath);
     }
 
-    public void Dispose() => _httpClient.Dispose();
+    public void Dispose()
+    {
+        if (_ownsHttpClient)
+        {
+            _httpClient.Dispose();
+        }
+    }
 }

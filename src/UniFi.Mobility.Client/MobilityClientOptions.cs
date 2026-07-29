@@ -33,12 +33,20 @@ public sealed class MobilityClientOptions
     /// <summary>
     /// Create options against a custom base address, e.g. for testing or a proxy.
     /// </summary>
-    /// <param name="baseAddress">Base address; a trailing slash is added if missing.</param>
+    /// <param name="baseAddress">Base address; a trailing slash is added if missing. Must be HTTPS unless <paramref name="allowInsecureTransport"/> is set.</param>
     /// <param name="apiKey">API key with <c>mobility</c> scope.</param>
-    public static MobilityClientOptions Create(Uri baseAddress, string apiKey)
+    /// <param name="allowInsecureTransport">Permit a non-HTTPS base address. Only for local testing — the API key would be sent in cleartext.</param>
+    public static MobilityClientOptions Create(Uri baseAddress, string apiKey, bool allowInsecureTransport = false)
     {
         ArgumentNullException.ThrowIfNull(baseAddress);
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+
+        if (!allowInsecureTransport && !string.Equals(baseAddress.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException(
+                "Base address must use HTTPS so the API key is not sent in cleartext. Pass allowInsecureTransport: true to override (testing only).",
+                nameof(baseAddress));
+        }
 
         var normalized = baseAddress.AbsoluteUri.EndsWith('/')
             ? baseAddress
