@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <PackageId>UniFi.Protect.Client</PackageId>
+    <Version>7.1.87</Version>
+    <Description>A .NET client for the UniFi Protect API, supporting both local console and Site Manager cloud connector access. Covers cameras, sensors, lights, and the rest of the Protect device fleet.</Description>
+    <Authors>Daniël van Ginneken</Authors>
+    <RepositoryUrl>https://github.com/DanielvG-IT/UniFi.NET</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>
