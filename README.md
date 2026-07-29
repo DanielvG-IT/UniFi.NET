@@ -11,9 +11,13 @@ It also includes a client for the [UniFi Protect API](https://developer.ui.com/p
 sensors, lights, and the rest of the Protect device fleet, over both local console and cloud
 connector. See [Protect API](#protect-api) below.
 
+And a client for the [UniFi Mobility API](https://developer.ui.com/mobility/) — workspaces and
+mobile routing devices (UMR), cloud-only. See [Mobility API](#mobility-api) below.
+
 This repo is meant to grow into a family of UniFi .NET clients (`UniFi.Network.Client`,
-`UniFi.SiteManager.Client`, and `UniFi.Protect.Client` today, `UniFi.Access.Client` potentially
-later), so each product's client lives under its own namespace and project.
+`UniFi.SiteManager.Client`, `UniFi.Protect.Client`, and `UniFi.Mobility.Client` today,
+`UniFi.Access.Client` potentially later), so each product's client lives under its own namespace
+and project.
 
 ## Install
 
@@ -21,9 +25,10 @@ later), so each product's client lives under its own namespace and project.
 dotnet add package UniFi.Network.Client
 dotnet add package UniFi.SiteManager.Client
 dotnet add package UniFi.Protect.Client
+dotnet add package UniFi.Mobility.Client
 ```
 
-(Not published yet — reference the projects directly for now, e.g. `dotnet add reference src/UniFi.Network.Client/UniFi.Network.Client.csproj`, `src/UniFi.SiteManager.Client/UniFi.SiteManager.Client.csproj`, or `src/UniFi.Protect.Client/UniFi.Protect.Client.csproj`.)
+(Not published yet — reference the projects directly for now, e.g. `dotnet add reference src/UniFi.Network.Client/UniFi.Network.Client.csproj` — the same applies to the `UniFi.SiteManager.Client`, `UniFi.Protect.Client`, and `UniFi.Mobility.Client` projects under `src/`.)
 
 ## Usage
 
@@ -246,6 +251,51 @@ await foreach (var message in client.Subscriptions.SubscribeToEventsAsync(cancel
 Non-2xx responses throw `UniFi.Protect.Client.Http.UniFiProtectException`, carrying the HTTP status
 plus the API's `error`/`name` fields.
 
+## Mobility API
+
+`UniFi.Mobility.Client` targets the UniFi Mobility API at `https://api.ui.com` — the account-wide
+cloud API for mobile routing devices (UMR). Like the Site Manager client, it's **cloud-only** and
+needs just an API key (issued with the `mobility` scope) from unifi.ui.com.
+
+```csharp
+using UniFi.Mobility.Client;
+
+using var client = new UniFiMobilityClient(apiKey);
+
+var workspaces = await client.Workspaces.ListAsync();
+foreach (var workspace in workspaces.Data)
+{
+    var devices = await client.Devices.ListAsync(workspace.WorkspaceId);
+    foreach (var device in devices.Data)
+        Console.WriteLine($"{device.Name} [{device.Model}] {device.State}");
+}
+```
+
+The resources are `Workspaces` (list + admins) and `Devices` (list, detail, clients, and
+`UpdateName`/`UpdateNetwork`/`UpdateWireless` — the last three need a `write:mobility` key).
+Everything is fully typed, including device detail (WAN, cellular, WiFi, VPN, subscription, GPS).
+
+### Pagination (offset/limit)
+
+Mobility list endpoints return a `MobilityPage<T>` with `Data`, `Total`, `Offset`, `Limit`, and a
+`HasMore` helper:
+
+```csharp
+var page = await client.Devices.ListAsync(workspaceId, limit: 200, offset: 0);
+while (true)
+{
+    foreach (var device in page.Data) { /* ... */ }
+    if (!page.HasMore) break;
+    page = await client.Devices.ListAsync(workspaceId, limit: 200, offset: page.Offset + page.Data.Count);
+}
+```
+
+### Errors
+
+Non-2xx responses throw `UniFi.Mobility.Client.Http.UniFiMobilityException`, carrying the HTTP
+status plus the API's `code`/`message`/`traceId`. Note the API is rate limited to 100 requests
+per minute per key (`429`, surfaced as `code == "rate_limit"`).
+
 ## Project layout
 
 - `src/UniFi.Network.Client` — the Network API library
@@ -266,9 +316,16 @@ plus the API's `error`/`name` fields.
   - `Http/` — HTTP plumbing (`ApiConnection`, `UniFiProtectException`)
   - `Models/` — device and response types
   - `Resources/` — one class per device group plus Files, AlarmManager, and Subscriptions
+- `src/UniFi.Mobility.Client` — the Mobility API library
+  - `MobilityClientOptions` — API key / base address
+  - `UniFiMobilityClient` — entry point, aggregates resource clients
+  - `Http/` — HTTP plumbing (`ApiConnection`, `UniFiMobilityException`)
+  - `Models/` — workspace, device, and client types plus the `MobilityPage<T>` envelope
+  - `Resources/` — Workspaces, Devices
 - `samples/UniFi.Network.Client.Sample` — console app demonstrating both connection targets
 - `samples/UniFi.SiteManager.Client.Sample` — console app for the Site Manager API
 - `samples/UniFi.Protect.Client.Sample` — console app for the Protect API
+- `samples/UniFi.Mobility.Client.Sample` — console app for the Mobility API
 
 ## Sample app
 
@@ -291,6 +348,13 @@ For the Protect API (same local/cloud targets as the Network sample):
 export UNIFI_API_KEY=...
 export UNIFI_CONSOLE_HOST=192.168.1.1   # or UNIFI_CONSOLE_ID=... for the cloud connector
 dotnet run --project samples/UniFi.Protect.Client.Sample
+```
+
+For the Mobility API (only an API key with the `mobility` scope is needed):
+
+```bash
+export UNIFI_API_KEY=...
+dotnet run --project samples/UniFi.Mobility.Client.Sample
 ```
 
 ## Status
