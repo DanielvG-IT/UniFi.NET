@@ -8,5 +8,6 @@
     <Project Path="src/UniFi.Network.Client/UniFi.Network.Client.csproj" />
     <Project Path="src/UniFi.SiteManager.Client/UniFi.SiteManager.Client.csproj" />
     <Project Path="src/UniFi.Protect.Client/UniFi.Protect.Client.csproj" />
+    <Project Path="src/UniFi.Mobility.Client/UniFi.Mobility.Client.csproj" />
   </Folder>
 </Solution>
