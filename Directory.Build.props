@@ -1,0 +1,13 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Turn on the built-in .NET code analyzers, with all security rules (CAxxxx) enabled. -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisModeSecurity>All</AnalysisModeSecurity>
+
+    <!-- Pin restore inputs so any future dependency is hash-locked and scannable. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+</Project>

@@ -37,7 +37,7 @@ save:
 		echo "💡 Usage: make save m=\"Update devices endpoint\""; \
 		exit 1; \
 	fi
-	git add .
+	git add src samples .github Makefile README.md Directory.Build.props *.slnx *.md 2>/dev/null || true
 	git commit -m "$(m)"
 	git push origin main
 	@echo "✅ Pushed to main! Canary build started."
