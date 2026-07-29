@@ -59,6 +59,8 @@ jobs:
             project: src/UniFi.Protect.Client/UniFi.Protect.Client.csproj
           - name: UniFi.Mobility.Client
             project: src/UniFi.Mobility.Client/UniFi.Mobility.Client.csproj
+          - name: UniFi.Network.Client.Extensions.DependencyInjection
+            project: src/UniFi.Network.Client.Extensions.DependencyInjection/UniFi.Network.Client.Extensions.DependencyInjection.csproj
 
     steps:
       - name: Checkout repository

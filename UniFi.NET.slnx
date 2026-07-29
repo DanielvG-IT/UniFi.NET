@@ -10,5 +10,6 @@
     <Project Path="src/UniFi.SiteManager.Client/UniFi.SiteManager.Client.csproj" />
     <Project Path="src/UniFi.Protect.Client/UniFi.Protect.Client.csproj" />
     <Project Path="src/UniFi.Mobility.Client/UniFi.Mobility.Client.csproj" />
+    <Project Path="src/UniFi.Network.Client.Extensions.DependencyInjection/UniFi.Network.Client.Extensions.DependencyInjection.csproj" />
   </Folder>
 </Solution>
