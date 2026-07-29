@@ -28,10 +28,15 @@ dotnet add package UniFi.Protect.Client
 dotnet add package UniFi.Mobility.Client
 ```
 
-All four packages are published on [NuGet.org](https://www.nuget.org/packages?q=UniFi.NET). They're
+All four clients are published on [NuGet.org](https://www.nuget.org/packages?q=UniFi.NET). They're
 versioned independently — each tracks its upstream API version: `UniFi.Network.Client` **10.4.57**,
 `UniFi.Protect.Client` **7.1.87**, `UniFi.SiteManager.Client` **1.0.0**, `UniFi.Mobility.Client`
 **1.0.0**.
+
+There's also an optional DI integration package for the Network client,
+`UniFi.Network.Client.Extensions.DependencyInjection`, for `IHttpClientFactory`-based registration
+(see [Dependency injection](#dependency-injection)). It's in the repo and releases on its next tag —
+not yet on NuGet at the time of writing.
 
 ## Usage
 
@@ -156,6 +161,29 @@ catch (UniFiApiException ex)
     Console.WriteLine($"{ex.StatusCode} {ex.Code}: {ex.Message}");
 }
 ```
+
+### Dependency injection
+
+The optional `UniFi.Network.Client.Extensions.DependencyInjection` package registers the client as a
+typed `HttpClient` via `IHttpClientFactory` (pooled, long-lived connections), applying the same TLS
+pinning/trust settings. The core `UniFi.Network.Client` stays dependency-free; only this package
+pulls in `Microsoft.Extensions.Http`.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using UniFi.Network.Client;
+
+builder.Services.AddUniFiNetworkClient(
+    UniFiClientOptions.ForLocalConsole("192.168.1.1", apiKey, pinnedCertificateSha256: pin));
+// or resolve options from config/DI:
+builder.Services.AddUniFiNetworkClient(sp => UniFiClientOptions.ForCloudConnector(consoleId, apiKey));
+
+// then inject it anywhere:
+public sealed class GuestService(UniFiNetworkClient unifi) { /* ... */ }
+```
+
+`AddUniFiNetworkClient` returns the `IHttpClientBuilder`, so you can chain resilience/logging
+handlers (e.g. Polly).
 
 ## Site Manager API
 
@@ -339,6 +367,8 @@ per minute per key (`429`, surfaced as `code == "rate_limit"`).
   - `Http/` — HTTP plumbing (`ApiConnection`, `UniFiMobilityException`)
   - `Models/` — workspace, device, and client types plus the `MobilityPage<T>` envelope
   - `Resources/` — Workspaces, Devices
+- `src/UniFi.Network.Client.Extensions.DependencyInjection` — optional DI integration for the
+  Network client (`AddUniFiNetworkClient(...)` over `IHttpClientFactory`)
 - `samples/UniFi.Network.Client.Sample` — console app demonstrating both connection targets
 - `samples/UniFi.SiteManager.Client.Sample` — console app for the Site Manager API
 - `samples/UniFi.Protect.Client.Sample` — console app for the Protect API
@@ -404,17 +434,19 @@ only ever provide them through repository secrets.
 
 ## Status
 
-Four independently-versioned packages, each built against — and versioned to match — its upstream
-API:
+Four independently-versioned client packages, each built against — and versioned to match — its
+upstream API, plus an optional DI package:
 
-| Package | Version | API |
+| Package | Version | API / role |
 |---|---|---|
 | `UniFi.Network.Client` | 10.4.57 | [Network](https://developer.ui.com/network/) (local console + cloud connector) |
 | `UniFi.Protect.Client` | 7.1.87 | [Protect](https://developer.ui.com/protect/) (local console + cloud connector) |
 | `UniFi.SiteManager.Client` | 1.0.0 | [Site Manager](https://developer.ui.com/site-manager/) (cloud) |
 | `UniFi.Mobility.Client` | 1.0.0 | [Mobility](https://developer.ui.com/mobility/) (cloud) |
+| `UniFi.Network.Client.Extensions.DependencyInjection` | 1.0.0 | DI / `IHttpClientFactory` for the Network client — *not yet published* |
 
 Generated request/response shapes are built against these API versions and may drift from newer
-firmware — the linked OpenAPI specs are the source of truth. The libraries have **zero third-party
-dependencies**, and local-console targets support **TLS certificate pinning** (see the Security note
+firmware — the linked OpenAPI specs are the source of truth. The client libraries have **zero
+third-party dependencies** (the DI package pulls in `Microsoft.Extensions.Http`), and local-console
+targets support **TLS certificate pinning** (see the Security note
 under [Local console](#local-console)).
