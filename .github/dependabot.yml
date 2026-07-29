@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Keep pinned GitHub Actions SHAs current (mitigates supply-chain drift).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci
+
+  # No third-party NuGet packages today, but this keeps any future dependency updated.
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: deps
