@@ -28,7 +28,10 @@ dotnet add package UniFi.Protect.Client
 dotnet add package UniFi.Mobility.Client
 ```
 
-(Not published yet — reference the projects directly for now, e.g. `dotnet add reference src/UniFi.Network.Client/UniFi.Network.Client.csproj` — the same applies to the `UniFi.SiteManager.Client`, `UniFi.Protect.Client`, and `UniFi.Mobility.Client` projects under `src/`.)
+All four packages are published on [NuGet.org](https://www.nuget.org/packages?q=UniFi.NET). They're
+versioned independently — each tracks its upstream API version: `UniFi.Network.Client` **10.4.57**,
+`UniFi.Protect.Client` **7.1.87**, `UniFi.SiteManager.Client` **1.0.0**, `UniFi.Mobility.Client`
+**1.0.0**.
 
 ## Usage
 
@@ -401,6 +404,17 @@ only ever provide them through repository secrets.
 
 ## Status
 
-Covers all 44 documented endpoints across the Network API's 25 resource categories. Built against
-API version 10.4.57 — generated request/response shapes may drift from newer console firmware;
-the OpenAPI spec URL above is the source of truth.
+Four independently-versioned packages, each built against — and versioned to match — its upstream
+API:
+
+| Package | Version | API |
+|---|---|---|
+| `UniFi.Network.Client` | 10.4.57 | [Network](https://developer.ui.com/network/) (local console + cloud connector) |
+| `UniFi.Protect.Client` | 7.1.87 | [Protect](https://developer.ui.com/protect/) (local console + cloud connector) |
+| `UniFi.SiteManager.Client` | 1.0.0 | [Site Manager](https://developer.ui.com/site-manager/) (cloud) |
+| `UniFi.Mobility.Client` | 1.0.0 | [Mobility](https://developer.ui.com/mobility/) (cloud) |
+
+Generated request/response shapes are built against these API versions and may drift from newer
+firmware — the linked OpenAPI specs are the source of truth. The libraries have **zero third-party
+dependencies**, and local-console targets support **TLS certificate pinning** (see the Security note
+under [Local console](#local-console)).

@@ -11,9 +11,16 @@
     <Description>A .NET client for the UniFi Protect API, supporting both local console and Site Manager cloud connector access. Covers cameras, sensors, lights, and the rest of the Protect device fleet.</Description>
     <Authors>Daniël van Ginneken</Authors>
     <RepositoryUrl>https://github.com/DanielvG-IT/UniFi.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/DanielvG-IT/UniFi.NET</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
